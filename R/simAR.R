@@ -1,0 +1,45 @@
+#' Simulate correlated data from a precision matrix.
+#'
+#' @description Takes in a square precision matrix, which ideally should be
+#' sparse and using Choleski factorization simulates data from a mean 0 process
+#' where the inverse of the precision matrix represents the variance-covariance
+#' of the points in the process. The resulting simulants represent samples of a
+#' Gaussian Markov random field (GMRF).
+#'
+#' @param n int > 0, number of observations to simulate from the GMRF.
+#' @param Q matrix, a square precision matrix.
+#'
+#' @return Matrix object, matrix where each row is a single obsrevation from
+#' a GMRF with covariance structure Q^-1.
+#'
+#' @examples
+#' require("ggplot2")
+#'
+#' # simulate 2D ar1 process
+#' # pairwise correlation
+#' rho <- .95
+#' # pairwise variance
+#' sigma <- .5
+#'
+#' # 2 dimensions of simulations
+#' years <- 20
+#' ages <- 10
+#'
+#' # kronnecker product to get joint covariance
+#' Q2D <- kronecker(Q.AR1(M=years, sigma, rho), Q.AR1(M=ages, sigma, rho))
+#'
+#' # simulate the data and place it in a data frame
+#' Q2D.df <- data.frame(obs=c(sim.AR(1, Q2D)), age=rep(1:ages, years),
+#'                      year=rep(1:years, each=ages))
+#'
+#' # graph results
+#' ggplot(data=Q2D.df, aes(year, obs, group=age, color=age)) + geom_line()
+#'
+#' @export
+
+sim.AR <- function(n, Q){
+    sparseMVN::rmvn.sparse(
+        n,
+        rep(0, nrow(Q)),
+        Matrix::Cholesky(Matrix::Matrix(Q, sparse=TRUE)), T)
+}
